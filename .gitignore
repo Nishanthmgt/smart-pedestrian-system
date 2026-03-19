@@ -1,0 +1,10 @@
+node_modules/
+dist/
+.env
+.vscode/
+*.log
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+/python-system/yolov8n.pt
+.gemini/

@@ -11,7 +11,7 @@ import { ShieldAlert } from 'lucide-react';
 import { CrossingHistory } from './components/CrossingHistory';
 
 function App() {
-  const { videoRef, stream, error, devices, currentDeviceId, switchCamera } = useCamera();
+  const { videoRef, stream, error, devices, currentDeviceId, switchCamera, startCamera, isActive } = useCamera();
   
   const [peopleCount, setPeopleCount] = useState(0);
   const [history, setHistory] = useState([]);
@@ -77,6 +77,8 @@ function App() {
               devices={devices}
               switchCamera={switchCamera}
               currentDeviceId={currentDeviceId}
+              startCamera={startCamera}
+              isActive={isActive}
             />
           </div>
           

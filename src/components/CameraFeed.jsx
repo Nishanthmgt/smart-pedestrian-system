@@ -101,12 +101,29 @@ export function CameraFeed({ videoRef, stream, error, onDetectedCount, devices, 
       {/* Scanline overlay */}
       <div className="absolute inset-0 scanline-overlay z-20"></div>
       
-      {(!stream || isModelLoading) && (
-        <div className="absolute inset-0 flex flex-col items-center justify-center font-mono text-neon-blue bg-black/80 z-40 backdrop-blur-sm">
-          <div className="text-2xl animate-pulse flex items-center gap-3">
-             <div className="w-4 h-4 rounded-full bg-neon-blue animate-ping"></div>
-             {isModelLoading ? 'AI CORE LOADING...' : 'SEARCHING CAMERA...'}
-          </div>
+      {(!isActive || isModelLoading) && (
+        <div className="absolute inset-0 flex flex-col items-center justify-center font-mono text-neon-blue bg-black/90 z-40 backdrop-blur-md p-6 text-center">
+          {isModelLoading ? (
+            <div className="text-2xl animate-pulse flex items-center gap-3">
+              <div className="w-4 h-4 rounded-full bg-neon-blue animate-ping"></div>
+              AI_CORE_LOADING...
+            </div>
+          ) : (
+            <div className="flex flex-col items-center gap-6">
+              <div className="text-xl opacity-80 tracking-widest animate-pulse">SYSTEM_STANDBY</div>
+              <button 
+                onClick={() => startCamera()}
+                className="px-8 py-4 bg-neon-blue text-black font-bold rounded-lg shadow-[0_0_20px_rgba(0,243,255,0.4)] hover:scale-105 active:scale-95 transition-all text-sm tracking-[0.2em] flex items-center gap-3"
+              >
+                <Camera className="w-5 h-5" />
+                INITIALIZE AI SYSTEM
+              </button>
+              <div className="text-[10px] opacity-40 max-w-xs leading-loose">
+                CAMERA ACCESS REQUIRED FOR PEDESTRIAN DETECTION. <br/>
+                TAP TO AUTHENTICATE DEVICE SESSION.
+              </div>
+            </div>
+          )}
         </div>
       )}
 

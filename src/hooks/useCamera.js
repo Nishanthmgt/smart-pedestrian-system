@@ -6,76 +6,84 @@ export function useCamera() {
   const [error, setError] = useState(null);
   const [devices, setDevices] = useState([]);
   const [currentDeviceId, setCurrentDeviceId] = useState('');
+  const [isActive, setIsActive] = useState(false);
 
-  // Get list of cameras
-  useEffect(() => {
-    async function getDevices() {
-      try {
-        const devs = await navigator.mediaDevices.enumerateDevices();
-        const videoDevs = devs.filter(d => d.kind === 'videoinput');
-        setDevices(videoDevs);
-        if (videoDevs.length > 0 && !currentDeviceId) {
-          setCurrentDeviceId(videoDevs[0].deviceId);
-        }
-      } catch (err) {
-        console.error('Error listing devices:', err);
-      }
+  // Get list of cameras (Labels may be empty until first permission)
+  const getDevices = async () => {
+    try {
+      const devs = await navigator.mediaDevices.enumerateDevices();
+      const videoDevs = devs.filter(d => d.kind === 'videoinput');
+      setDevices(videoDevs);
+    } catch (err) {
+      console.error('Error listing devices:', err);
     }
-    getDevices();
-  }, []);
+  };
 
-  useEffect(() => {
-    if (!currentDeviceId) return;
-    
-    let activeStream = null;
+  const startCamera = async (deviceId = null) => {
+    // Stop old stream
+    if (stream) {
+      stream.getTracks().forEach(t => t.stop());
+    }
 
-    async function startCamera() {
-      // Stop old stream
-      if (stream) {
-        stream.getTracks().forEach(t => t.stop());
+    const constraints = {
+      video: deviceId 
+        ? { deviceId: { exact: deviceId } } 
+        : { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } }
+    };
+
+    try {
+      const mediaStream = await navigator.mediaDevices.getUserMedia(constraints);
+      setStream(mediaStream);
+      setIsActive(true);
+      setError(null);
+      
+      if (videoRef.current) {
+        videoRef.current.srcObject = mediaStream;
       }
-
-      try {
-        const mediaStream = await navigator.mediaDevices.getUserMedia({
-          video: { 
-            deviceId: { exact: currentDeviceId },
-            width: { ideal: 1280 }, 
-            height: { ideal: 720 } 
-          }
-        });
-        
-        setStream(mediaStream);
-        activeStream = mediaStream;
-
-        if (videoRef.current) {
-          videoRef.current.srcObject = mediaStream;
-        }
-      } catch (err) {
-        // Fallback for some browsers that don't like 'exact'
+      
+      // Now that we have permission, refresh device list to get labels
+      await getDevices();
+      
+      // Set current device ID if not already set
+      if (!currentDeviceId && mediaStream.getVideoTracks().length > 0) {
+        const settings = mediaStream.getVideoTracks()[0].getSettings();
+        if (settings.deviceId) setCurrentDeviceId(settings.deviceId);
+      }
+    } catch (err) {
+      console.error('Error accessing camera:', err);
+      // Fallback: try without exact constraints
+      if (deviceId) {
         try {
-            const mediaStream = await navigator.mediaDevices.getUserMedia({
-                video: { deviceId: currentDeviceId }
-            });
-            setStream(mediaStream);
-            activeStream = mediaStream;
-            if (videoRef.current) videoRef.current.srcObject = mediaStream;
+          const mediaStream = await navigator.mediaDevices.getUserMedia({ video: { deviceId } });
+          setStream(mediaStream);
+          setIsActive(true);
+          if (videoRef.current) videoRef.current.srcObject = mediaStream;
         } catch (innerErr) {
-            console.error('Error accessing camera:', err);
-            setError(err.message || 'Failed to access camera');
+          setError('Camera access denied or device unavailable.');
         }
+      } else {
+        setError('Camera access denied. Please enable camera permissions.');
       }
     }
+  };
 
-    startCamera();
-
+  useEffect(() => {
+    // Attempt auto-start on desktop, but mobile might need interaction
+    if (!isActive) {
+        startCamera();
+    }
+    
     return () => {
-      if (activeStream) {
-        activeStream.getTracks().forEach(track => track.stop());
+      if (stream) {
+        stream.getTracks().forEach(track => track.stop());
       }
     };
   }, [currentDeviceId]);
 
-  const switchCamera = (id) => setCurrentDeviceId(id);
+  const switchCamera = (id) => {
+    setCurrentDeviceId(id);
+    startCamera(id);
+  };
 
-  return { videoRef, stream, error, devices, currentDeviceId, switchCamera };
+  return { videoRef, stream, error, devices, currentDeviceId, switchCamera, startCamera, isActive };
 }

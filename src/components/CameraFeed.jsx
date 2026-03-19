@@ -3,7 +3,7 @@ import * as tf from '@tensorflow/tfjs';
 import * as cocoSsd from '@tensorflow-models/coco-ssd';
 import { Camera, Settings } from 'lucide-react';
 
-export function CameraFeed({ videoRef, stream, error, onDetectedCount, devices, switchCamera, currentDeviceId }) {
+export function CameraFeed({ videoRef, stream, error, onDetectedCount, devices, switchCamera, currentDeviceId, startCamera, isActive }) {
   const canvasRef = useRef(null);
   const [model, setModel] = useState(null);
   const [isModelLoading, setIsModelLoading] = useState(true);

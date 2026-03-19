@@ -36,7 +36,7 @@
     @apply bg-dark-bg text-white font-sans antialiased overflow-x-hidden;
     background-image: 
       linear-gradient(rgba(10, 10, 15, 0.8), rgba(10, 10, 15, 0.8)),
-      url('/assets/street_bg.png');
+      url('./assets/street_bg.png');
     background-size: cover;
     background-position: center;
     background-attachment: fixed;

@@ -28,8 +28,9 @@ function App() {
       }
     } else if (mode === 'VEHICLE' && maxInCurrentCycle > 0) {
       // Pedestrian phase just ended, save the record
+      const generateId = () => Math.random().toString(36).substr(2, 9) + Date.now().toString(36);
       const newEntry = {
-        id: crypto.randomUUID(),
+        id: generateId(),
         timestamp: new Date().toLocaleTimeString(),
         count: maxInCurrentCycle,
         duration: 15, // matches PEDESTRIAN_CROSSING_TIME_S
